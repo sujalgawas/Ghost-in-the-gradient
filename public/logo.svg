@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="lexsi-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="#090d16" />
+  <rect x="2" y="2" width="96" height="96" rx="22" stroke="url(#lexsi-grad)" stroke-width="3" />
+  <path d="M30 70V30H42C52 30 58 36 58 45C58 54 52 60 42 60H38V70H30ZM38 52H42C47 52 50 49 50 45C50 41 47 38 42 38H38V52Z" fill="url(#lexsi-grad)" />
+  <circle cx="70" cy="50" r="10" fill="#10b981" />
+  <circle cx="70" cy="50" r="4" fill="#090d16" />
+</svg>
