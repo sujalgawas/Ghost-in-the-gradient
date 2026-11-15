@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, CheckSquare } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export interface SimpleField {
@@ -25,7 +25,6 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
     { id: '4', name: 'is_approved', type: 'boolean', nullable: false, required: false },
   ]);
 
-  // If initial schema changes from presets or sample loader, try to extract fields
   useEffect(() => {
     if (initialSchema && initialSchema.properties) {
       const props = initialSchema.properties;
@@ -58,7 +57,6 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
     }
   }, [initialSchema]);
 
-  // Compile fields into JSON Schema whenever fields change
   useEffect(() => {
     const properties: Record<string, any> = {};
     const required: string[] = [];
@@ -106,35 +104,35 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
   };
 
   return (
-    <div className="flex flex-col gap-2.5">
-      <div className="overflow-x-auto">
+    <div className="flex flex-col gap-2">
+      <div className="border border-zinc-200 rounded-md overflow-hidden bg-white">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-              <th className="pb-1.5 font-semibold">Field Name</th>
-              <th className="pb-1.5 font-semibold">Type</th>
-              <th className="pb-1.5 font-semibold text-center">Req?</th>
-              <th className="pb-1.5 font-semibold text-center">Null?</th>
-              <th className="pb-1.5 text-right font-semibold"></th>
+            <tr className="border-b border-zinc-200 bg-zinc-50 text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              <th className="py-1.5 px-2.5 font-medium">Field</th>
+              <th className="py-1.5 px-2 font-medium">Type</th>
+              <th className="py-1.5 px-2 text-center font-medium">Req</th>
+              <th className="py-1.5 px-2 text-center font-medium">Null</th>
+              <th className="py-1.5 pr-2 w-6"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+          <tbody className="divide-y divide-zinc-100 font-mono text-xs">
             {fields.map((field) => (
-              <tr key={field.id} className="group">
-                <td className="py-1.5 pr-2">
+              <tr key={field.id} className="hover:bg-zinc-50/50">
+                <td className="py-1 px-2.5">
                   <input
                     type="text"
                     value={field.name}
                     onChange={(e) => updateField(field.id, { name: e.target.value })}
                     placeholder="field_name"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded px-2 py-1 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-transparent text-zinc-900 focus:outline-none focus:underline"
                   />
                 </td>
-                <td className="py-1.5 pr-2">
+                <td className="py-1 px-2">
                   <select
                     value={field.type}
                     onChange={(e) => updateField(field.id, { type: e.target.value as any })}
-                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="bg-transparent text-zinc-700 text-xs focus:outline-none cursor-pointer"
                   >
                     <option value="string">string</option>
                     <option value="number">number</option>
@@ -144,32 +142,29 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
                     <option value="object">object</option>
                   </select>
                 </td>
-                <td className="py-1.5 text-center">
+                <td className="py-1 px-2 text-center">
                   <input
                     type="checkbox"
                     checked={field.required}
                     onChange={(e) => updateField(field.id, { required: e.target.checked })}
-                    className="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                    title="Required in schema"
+                    className="rounded border-zinc-300 text-zinc-950 focus:ring-0 cursor-pointer h-3.5 w-3.5"
                   />
                 </td>
-                <td className="py-1.5 text-center">
+                <td className="py-1 px-2 text-center">
                   <input
                     type="checkbox"
                     checked={field.nullable}
                     onChange={(e) => updateField(field.id, { nullable: e.target.checked })}
-                    className="rounded border-slate-300 dark:border-slate-700 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
-                    title="Allow null value"
+                    className="rounded border-zinc-300 text-zinc-950 focus:ring-0 cursor-pointer h-3.5 w-3.5"
                   />
                 </td>
-                <td className="py-1.5 text-right pl-2">
+                <td className="py-1 pr-2 text-right">
                   <button
                     type="button"
                     onClick={() => removeField(field.id)}
-                    className="text-slate-600 hover:text-rose-500 dark:text-slate-400 dark:hover:text-rose-400 p-1 rounded transition-colors"
-                    title="Remove field"
+                    className="text-zinc-400 hover:text-red-600 transition-colors"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-3 w-3" />
                   </button>
                 </td>
               </tr>
@@ -178,19 +173,19 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
         </table>
       </div>
 
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex items-center justify-between">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={addField}
-          className="text-xs py-1 px-2.5"
+          className="text-xs font-mono py-1 px-2"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-3 w-3 mr-1" />
           Add Field
         </Button>
-        <span className="text-[11px] text-slate-700 dark:text-slate-300">
-          Auto-compiling to JSON Schema v7
+        <span className="text-[11px] font-mono text-zinc-400">
+          JSON Schema v7
         </span>
       </div>
     </div>

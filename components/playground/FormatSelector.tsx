@@ -1,6 +1,4 @@
 import React from 'react';
-import { Badge } from '@/components/ui/Badge';
-import { FileCode, FileText } from 'lucide-react';
 
 interface FormatSelectorProps {
   value: string;
@@ -10,51 +8,33 @@ interface FormatSelectorProps {
 export function FormatSelector({ value, onChange }: FormatSelectorProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-        <span className="flex items-center gap-1.5">
-          <FileCode className="h-3.5 w-3.5 text-cyan-500" />
-          Output Format
-        </span>
-        <span className="text-[11px] font-normal text-slate-700 dark:text-slate-300">Constrained Grammar</span>
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-500">
+          Constrained Grammar
+        </label>
+        <span className="text-[11px] font-mono text-zinc-400">Strict Decoding</span>
+      </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => onChange('json')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+          className={`px-2.5 py-1 rounded text-xs font-mono font-medium border transition-colors ${
             value === 'json'
-              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-semibold'
-              : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+              ? 'bg-zinc-950 text-white border-zinc-950'
+              : 'border-zinc-200 text-zinc-600 hover:bg-zinc-100'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           JSON (Strict Schema)
         </button>
 
-        <div className="flex items-center gap-1.5 opacity-60 cursor-not-allowed">
-          <button
-            type="button"
-            disabled
-            className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 flex items-center gap-1.5"
-          >
-            <span>YAML</span>
-            <Badge variant="slate" size="sm" className="text-[10px] py-0 px-1">
-              Soon
-            </Badge>
-          </button>
+        <span className="px-2 py-1 rounded text-xs font-mono text-zinc-400 border border-zinc-200 bg-zinc-50 cursor-not-allowed">
+          YAML <span className="text-[10px] text-zinc-400">soon</span>
+        </span>
 
-          <button
-            type="button"
-            disabled
-            className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 flex items-center gap-1.5"
-          >
-            <span>XML</span>
-            <Badge variant="slate" size="sm" className="text-[10px] py-0 px-1">
-              Soon
-            </Badge>
-          </button>
-        </div>
+        <span className="px-2 py-1 rounded text-xs font-mono text-zinc-400 border border-zinc-200 bg-zinc-50 cursor-not-allowed">
+          XML <span className="text-[10px] text-zinc-400">soon</span>
+        </span>
       </div>
     </div>
   );

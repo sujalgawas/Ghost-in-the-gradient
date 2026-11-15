@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { ThemeProvider } from '@/components/ThemeProvider';
 import { Navbar } from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Tiny-Aya Structured JSON Evaluation & Playground | Lexsi Labs',
-  description: 'Evaluate schema-conditioned JSON extraction across CohereLabs/tiny-aya-global Base, SFT v2, and DPO-aligned adapters.',
-  keywords: ['Tiny-Aya', 'JSON Extraction', 'DPO Alignment', 'LoRA', 'Schema Validation', 'FieldBench', 'Lexsi Labs'],
+  title: 'Tiny-Aya Structured Extraction Workbench | Lexsi Labs',
+  description: 'ML Research & Evaluation Workbench for schema-conditioned JSON extraction across CohereLabs/tiny-aya-global Base, SFT v2, and DPO-aligned adapters.',
 };
 
 export default function RootLayout({
@@ -15,28 +13,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500/20 selection:text-emerald-400">
-        <ThemeProvider>
-          <Navbar />
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {children}
-          </main>
-          <footer className="border-t border-slate-200 dark:border-slate-800/80 py-6 text-center text-xs text-slate-700 dark:text-slate-300">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Lexsi Labs</span>
-                <span>•</span>
-                <span>AI Safety & Alignment Hackathon Submission</span>
-              </div>
-              <div className="flex items-center gap-4 text-slate-700 dark:text-slate-300">
-                <span>Base: CohereLabs/tiny-aya-global (3.35B)</span>
-                <span>•</span>
-                <span>LoRA SFT v2 & DPO Adapters</span>
-              </div>
+    <html lang="en">
+      <body className="bg-[#FAFAFA] text-[#09090B] min-h-screen flex flex-col font-sans">
+        <Navbar />
+        <main className="flex-1 w-full">
+          {children}
+        </main>
+        <footer className="border-t border-zinc-200 bg-white py-3 px-6 text-xs text-zinc-500 font-mono">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+              <span className="font-medium text-zinc-800">Lexsi Labs</span> · AI Safety &amp; Alignment Hackathon · Track 1
             </div>
-          </footer>
-        </ThemeProvider>
+            <div className="text-zinc-400">
+              Base: tiny-aya-global (3.35B) · SFT v2 Adapter · DPO Adapter
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );

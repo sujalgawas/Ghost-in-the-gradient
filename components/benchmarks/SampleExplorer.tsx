@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { BenchmarkSample } from '@/types/benchmark';
-import { Search, Filter, ChevronDown, ChevronUp, FileText, CheckCircle2, XCircle, Code, Eye } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SampleExplorerProps {
   samples: BenchmarkSample[];
@@ -32,174 +30,168 @@ export function SampleExplorer({ samples }: SampleExplorerProps) {
   };
 
   return (
-    <Card className="p-5 flex flex-col gap-4">
+    <div className="w-full bg-white border border-zinc-200 rounded-lg p-4 flex flex-col gap-3">
       {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Eye className="h-4 w-4 text-emerald-500" />
-            FieldBench Sample Explorer & Multi-Model Diff Inspector
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 font-mono">
+            Sample-Level Inspector &amp; 3-Model Diff
           </h3>
-          <p className="text-xs text-slate-700 dark:text-slate-300">
-            Inspect source documents, gold schemas, and side-by-side model outputs
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Click any row to inspect source document, target schema, gold ground truth, and actual predictions
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           {/* Search bar */}
           <div className="relative">
-            <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+            <Search className="h-3 w-3 absolute left-2.5 top-2 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search samples..."
+              placeholder="Search sample id / text..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-40 sm:w-56"
+              className="bg-zinc-50 border border-zinc-200 rounded-md pl-7 pr-2.5 py-1 text-xs font-mono text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 w-44 sm:w-56"
             />
           </div>
 
           {/* Domain filter */}
-          <div className="flex items-center gap-1.5">
-            <Filter className="h-3.5 w-3.5 text-slate-400" />
-            <select
-              value={selectedDomain}
-              onChange={(e) => setSelectedDomain(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            >
-              <option value="all">All Domains ({samples.length})</option>
-              {domains.map((dom) => (
-                <option key={dom} value={dom}>
-                  {dom}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={selectedDomain}
+            onChange={(e) => setSelectedDomain(e.target.value)}
+            className="bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1 text-xs font-mono text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 cursor-pointer"
+          >
+            <option value="all">All Domains ({samples.length})</option>
+            {domains.map((dom) => (
+              <option key={dom} value={dom}>
+                {dom}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Samples Accordion List */}
-      <div className="flex flex-col gap-3">
+      {/* Samples List */}
+      <div className="flex flex-col border border-zinc-200 rounded-md divide-y divide-zinc-200 overflow-hidden text-xs">
         {filteredSamples.length === 0 ? (
-          <div className="text-center py-12 text-xs text-slate-700 dark:text-slate-300 italic">
-            No benchmark samples matching "{searchQuery}"
+          <div className="p-8 text-center text-zinc-400 font-mono">
+            No benchmark samples matching query
           </div>
         ) : (
           filteredSamples.map((sample) => {
             const isExpanded = expandedSampleId === sample.id;
+            const dpoExact = sample.predictions.dpo?.doc_exact;
+            const sftExact = sample.predictions.sftv2?.doc_exact;
+            const baseExact = sample.predictions.base?.doc_exact;
 
             return (
-              <div
-                key={sample.id}
-                className={`border rounded-xl transition-all overflow-hidden ${
-                  isExpanded
-                    ? 'border-emerald-500/50 bg-slate-50/50 dark:bg-slate-900/60 shadow-sm'
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                {/* Accordion Trigger */}
+              <div key={sample.id} className="bg-white">
+                {/* Row Header / Trigger */}
                 <button
                   type="button"
                   onClick={() => toggleExpand(sample.id)}
-                  className="w-full p-3.5 flex items-center justify-between text-left focus:outline-none"
+                  className={`w-full p-2.5 sm:px-3 sm:py-2 flex items-center justify-between text-left hover:bg-zinc-50 transition-colors ${
+                    isExpanded ? 'bg-zinc-50/70' : ''
+                  }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <span className="font-mono text-xs font-semibold text-zinc-950 w-16">
                       {sample.id}
                     </span>
-                    <Badge variant="cyan" size="sm">
+                    <span className="font-mono text-[11px] text-zinc-500 bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded">
                       {sample.domain}
-                    </Badge>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">
+                    </span>
+                    <span className="font-sans text-xs text-zinc-700 truncate max-w-sm sm:max-w-md hidden md:inline">
                       {sample.title}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Quick indicator pills */}
-                    <span className="hidden sm:inline-flex text-[11px] text-slate-700 dark:text-slate-300 font-mono">
-                      DPO: {sample.predictions.dpo.doc_exact ? '✅ Exact' : '⚠️ Partial'}
+                  <div className="flex items-center gap-3 font-mono text-[11px]">
+                    <span className={baseExact ? 'text-green-700' : 'text-zinc-400'}>
+                      Base: {baseExact ? '✓' : '✗'}
+                    </span>
+                    <span className={sftExact ? 'text-green-700' : 'text-zinc-400'}>
+                      SFT: {sftExact ? '✓' : '✗'}
+                    </span>
+                    <span className={dpoExact ? 'text-green-700 font-medium' : 'text-red-600'}>
+                      DPO: {dpoExact ? '✓ Exact' : '✗ Partial'}
                     </span>
                     {isExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-slate-400" />
+                      <ChevronUp className="h-3.5 w-3.5 text-zinc-400" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                      <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
                     )}
                   </div>
                 </button>
 
-                {/* Expanded Details */}
+                {/* Expanded Inspection Drawer */}
                 {isExpanded && (
-                  <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-5 animate-in fade-in duration-150">
-                    {/* Source Document & Gold JSON */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Document */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                          <FileText className="h-3.5 w-3.5 text-cyan-400" />
+                  <div className="p-3.5 bg-zinc-50 border-t border-zinc-200 flex flex-col gap-3 font-mono">
+                    {/* Top: Document & Gold Standard */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[11px] uppercase tracking-wider font-semibold text-zinc-500">
                           Source Document
-                        </label>
-                        <pre className="p-3 bg-slate-950 text-slate-200 rounded-lg text-xs font-mono max-h-48 overflow-auto border border-slate-800 whitespace-pre-wrap leading-relaxed">
+                        </span>
+                        <pre className="p-2.5 bg-zinc-100 border border-zinc-200 rounded text-xs text-zinc-800 max-h-36 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
                           {sample.document}
                         </pre>
                       </div>
 
-                      {/* Gold Standard */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[11px] uppercase tracking-wider font-semibold text-zinc-500">
                           Gold Target JSON
-                        </label>
-                        <pre className="p-3 bg-slate-950 text-emerald-300 rounded-lg text-xs font-mono max-h-48 overflow-auto border border-slate-800 leading-relaxed">
+                        </span>
+                        <pre className="p-2.5 bg-zinc-100 border border-zinc-200 rounded text-xs text-zinc-900 max-h-36 overflow-auto leading-relaxed select-text">
                           {JSON.stringify(sample.gold, null, 2)}
                         </pre>
                       </div>
                     </div>
 
-                    {/* 3 Models Actual Side-by-Side Predictions */}
-                    <div className="flex flex-col gap-2">
-                      <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                        <Code className="h-3.5 w-3.5 text-emerald-500" />
-                        Model Predictions Comparison
-                      </label>
+                    {/* Bottom: 3 Models Actual Side-by-Side Outputs */}
+                    <div className="flex flex-col gap-1.5 pt-2 border-t border-zinc-200">
+                      <span className="text-[11px] uppercase tracking-wider font-semibold text-zinc-500">
+                        Model Predictions Side-by-Side
+                      </span>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {/* Base Prediction */}
-                        <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3 bg-slate-50 dark:bg-slate-950/70 flex flex-col gap-2">
-                          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-1.5">
-                            <span>Base (3.35B)</span>
-                            <span className="text-[10px] text-rose-400">
-                              F1: {sample.predictions.base.field_f1 ?? 0}%
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                        {/* Base */}
+                        <div className="border border-zinc-200 bg-white rounded p-2.5 flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-[11px]">
+                            <span className="font-semibold text-zinc-700">Base</span>
+                            <span className="text-zinc-500 tabular-nums">
+                              {sample.predictions.base?.latency_ms}ms · f1: {sample.predictions.base?.field_f1}%
                             </span>
                           </div>
-                          <pre className="text-[11px] font-mono text-slate-300 max-h-56 overflow-auto whitespace-pre-wrap">
-                            {sample.predictions.base.raw_output}
+                          <pre className="text-[11.5px] text-zinc-700 max-h-48 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
+                            {sample.predictions.base?.raw_output || 'No output'}
                           </pre>
                         </div>
 
-                        {/* SFT v2 Prediction */}
-                        <div className="rounded-lg border border-blue-500/30 p-3 bg-blue-950/10 dark:bg-slate-950/70 flex flex-col gap-2">
-                          <div className="flex items-center justify-between text-xs font-bold text-blue-500 border-b border-blue-500/20 pb-1.5">
-                            <span>SFT v2 Adapter</span>
-                            <span className="text-[10px] text-blue-400">
-                              F1: {sample.predictions.sftv2.field_f1 ?? 0}%
+                        {/* SFT v2 */}
+                        <div className="border border-zinc-200 bg-white rounded p-2.5 flex flex-col gap-1.5 border-t-2 border-t-[#2563EB]">
+                          <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-[11px]">
+                            <span className="font-semibold text-blue-700">SFT v2</span>
+                            <span className="text-zinc-500 tabular-nums">
+                              {sample.predictions.sftv2?.latency_ms}ms · f1: {sample.predictions.sftv2?.field_f1}%
                             </span>
                           </div>
-                          <pre className="text-[11px] font-mono text-slate-300 max-h-56 overflow-auto whitespace-pre-wrap">
-                            {sample.predictions.sftv2.raw_output}
+                          <pre className="text-[11.5px] text-zinc-700 max-h-48 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
+                            {sample.predictions.sftv2?.raw_output || 'No output'}
                           </pre>
                         </div>
 
-                        {/* DPO Prediction */}
-                        <div className="rounded-lg border border-emerald-500/40 p-3 bg-emerald-950/10 dark:bg-slate-950/70 flex flex-col gap-2 ring-1 ring-emerald-500/20">
-                          <div className="flex items-center justify-between text-xs font-bold text-emerald-500 border-b border-emerald-500/20 pb-1.5">
-                            <span>DPO Aligned</span>
-                            <span className="text-[10px] text-emerald-400 font-semibold">
-                              F1: {sample.predictions.dpo.field_f1 ?? 0}% (Exact Match)
+                        {/* DPO */}
+                        <div className="border border-zinc-200 bg-white rounded p-2.5 flex flex-col gap-1.5 border-t-2 border-t-[#059669]">
+                          <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-[11px]">
+                            <span className="font-semibold text-emerald-800">DPO</span>
+                            <span className="text-zinc-500 tabular-nums">
+                              {sample.predictions.dpo?.latency_ms}ms · f1: {sample.predictions.dpo?.field_f1}%
                             </span>
                           </div>
-                          <pre className="text-[11px] font-mono text-slate-200 max-h-56 overflow-auto whitespace-pre-wrap">
-                            {sample.predictions.dpo.raw_output}
+                          <pre className="text-[11.5px] text-zinc-700 max-h-48 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
+                            {sample.predictions.dpo?.raw_output || 'No output'}
                           </pre>
                         </div>
                       </div>
@@ -211,6 +203,6 @@ export function SampleExplorer({ samples }: SampleExplorerProps) {
           })
         )}
       </div>
-    </Card>
+    </div>
   );
 }

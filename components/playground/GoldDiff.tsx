@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, X, ArrowRight } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
 interface GoldDiffProps {
   predicted: Record<string, any> | null;
@@ -11,8 +11,8 @@ interface GoldDiffProps {
 export function GoldDiff({ predicted, gold }: GoldDiffProps) {
   if (!predicted) {
     return (
-      <div className="text-xs text-rose-400 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg">
-        Model output is not valid JSON. Cannot compare vs gold standard.
+      <div className="text-xs font-mono text-red-600 p-2.5 bg-red-50 border border-red-200 rounded-md">
+        Model output is not valid JSON. Cannot compare vs gold benchmark.
       </div>
     );
   }
@@ -20,17 +20,17 @@ export function GoldDiff({ predicted, gold }: GoldDiffProps) {
   const allKeys = Array.from(new Set([...Object.keys(gold), ...Object.keys(predicted)]));
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-950 p-2 text-xs">
+    <div className="overflow-x-auto rounded-md border border-zinc-200 bg-white text-xs">
       <table className="w-full text-left font-mono">
         <thead>
-          <tr className="border-b border-slate-800 text-[11px] text-slate-400">
-            <th className="p-1.5">Field</th>
-            <th className="p-1.5">Gold Benchmark Target</th>
-            <th className="p-1.5">Model Extracted</th>
-            <th className="p-1.5 text-center">Match</th>
+          <tr className="border-b border-zinc-200 bg-zinc-50 text-[11px] text-zinc-500 uppercase tracking-wider">
+            <th className="py-2 px-2.5">Field</th>
+            <th className="py-2 px-2">Gold Target</th>
+            <th className="py-2 px-2">Model Extracted</th>
+            <th className="py-2 px-2 text-center">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-850">
+        <tbody className="divide-y divide-zinc-100 text-xs">
           {allKeys.map((key) => {
             const goldVal = gold[key];
             const predVal = predicted[key];
@@ -41,21 +41,21 @@ export function GoldDiff({ predicted, gold }: GoldDiffProps) {
             const isMatch = goldStr === predStr;
 
             return (
-              <tr key={key} className={isMatch ? 'bg-emerald-950/20' : 'bg-rose-950/20'}>
-                <td className="p-1.5 text-cyan-400 font-medium">{key}</td>
-                <td className="p-1.5 text-slate-300 max-w-[200px] truncate" title={goldStr}>
+              <tr key={key} className={isMatch ? 'bg-green-50/40' : 'bg-red-50/40'}>
+                <td className="py-1.5 px-2.5 font-medium text-zinc-900">{key}</td>
+                <td className="py-1.5 px-2 text-zinc-600 max-w-[160px] truncate" title={goldStr}>
                   {goldStr}
                 </td>
-                <td className="p-1.5 text-slate-300 max-w-[200px] truncate" title={predStr}>
+                <td className="py-1.5 px-2 text-zinc-800 max-w-[160px] truncate" title={predStr}>
                   {predStr}
                 </td>
-                <td className="p-1.5 text-center">
+                <td className="py-1.5 px-2 text-center">
                   {isMatch ? (
-                    <span className="inline-flex items-center text-emerald-400 text-[10px] font-semibold gap-1">
+                    <span className="inline-flex items-center text-green-700 text-[11px] font-medium gap-0.5">
                       <Check className="h-3 w-3" /> Match
                     </span>
                   ) : (
-                    <span className="inline-flex items-center text-rose-400 text-[10px] font-semibold gap-1">
+                    <span className="inline-flex items-center text-red-600 text-[11px] font-medium gap-0.5">
                       <X className="h-3 w-3" /> Diff
                     </span>
                   )}

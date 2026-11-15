@@ -12,41 +12,22 @@ import { OutputCard } from '@/components/playground/OutputCard';
 import { WakeUpBanner } from '@/components/playground/WakeUpBanner';
 import { Button } from '@/components/ui/Button';
 import { useInference } from '@/hooks/useInference';
-import {
-  FileText,
-  Upload,
-  Database,
-  Play,
-  RotateCcw,
-  Sparkles,
-  AlertCircle,
-  HelpCircle,
-  Sliders,
-  AlignLeft,
-} from 'lucide-react';
+import { RotateCcw, AlertTriangle } from 'lucide-react';
 
 export default function PlaygroundPage() {
-  // Input Document Tab state
-  const [docTab, setDocTab] = useState<'upload' | 'paste' | 'sample'>('sample');
+  const [docTab, setDocTab] = useState<'sample' | 'paste' | 'upload'>('sample');
   const [documentText, setDocumentText] = useState<string>(
     SCHEMA_PRESETS[0].sampleDocument
   );
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
-
-  // Active loaded sample and gold
   const [selectedSample, setSelectedSample] = useState<BenchmarkSample | null>(null);
 
-  // Output format and schema
   const [outputFormat, setOutputFormat] = useState<string>('json');
   const [schema, setSchema] = useState<Record<string, any>>(SCHEMA_PRESETS[0].schema);
-
-  // Model selection
   const [selectedModel, setSelectedModel] = useState<ModelKey | 'all'>('all');
 
-  // Inference hook
   const { run, predictions, setPredictions, loading, error, wakingUp, countdown } = useInference();
 
-  // Handlers
   const handleTextExtracted = (text: string, filename: string) => {
     setDocumentText(text);
     setUploadedFileName(filename);
@@ -58,7 +39,6 @@ export default function PlaygroundPage() {
     setDocumentText(sample.document);
     setSchema(sample.schema);
     setUploadedFileName(null);
-    // Pre-populate with benchmark predictions so user immediately sees side-by-side comparison
     if (sample.predictions) {
       setPredictions({
         base: sample.predictions.base,
@@ -89,104 +69,84 @@ export default function PlaygroundPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <span>Tiny-Aya 3-Model Extraction Playground</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">
-              v2.0
-            </span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-1">
-            Compare zero-shot <span className="text-slate-800 dark:text-slate-200 font-medium">Base</span> vs. LoRA <span className="text-blue-600 dark:text-blue-400 font-medium">SFT v2</span> vs. preference-aligned <span className="text-emerald-600 dark:text-emerald-400 font-medium">DPO</span> on schema-conditioned JSON extraction.
-          </p>
-        </div>
-
+    <div className="w-full flex flex-col">
+      {/* Top micro bar */}
+      <div className="h-9 px-4 sm:px-6 border-b border-zinc-200 bg-white flex items-center justify-between text-xs font-mono text-zinc-500">
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="text-xs"
-            title="Reset to default document and schema"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Reset Defaults
-          </Button>
+          <span className="font-semibold text-zinc-800">EVALUATION WORKBENCH</span>
+          <span>·</span>
+          <span>SCHEMA-CONSTRAINED EXTRACTION</span>
         </div>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="text-zinc-500 hover:text-zinc-900 flex items-center gap-1 transition-colors"
+          title="Reset to default document and schema"
+        >
+          <RotateCcw className="h-3 w-3" />
+          <span>Reset</span>
+        </button>
       </div>
 
-      {/* Auto-sleep wake-up banner if GPU is waking up */}
-      {wakingUp && <WakeUpBanner countdown={countdown} />}
+      {wakingUp && (
+        <div className="p-4 border-b border-zinc-200 bg-zinc-50">
+          <WakeUpBanner countdown={countdown} />
+        </div>
+      )}
 
-      {/* Error alert if inference failed */}
       {error && (
-        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-3.5 text-rose-300 text-xs flex items-center gap-2.5">
-          <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+        <div className="p-3 border-b border-red-200 bg-red-50 text-red-700 text-xs font-mono flex items-center gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-600" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Main 2-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column (5 cols on lg) — Inputs & Config */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          {/* Document Input Section */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 shadow-sm flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <AlignLeft className="h-4 w-4 text-emerald-500" />
+      {/* Main Split Workbench */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-97px)]">
+        {/* Left Pane (42% width) */}
+        <div className="lg:col-span-5 border-r border-zinc-200 bg-white p-4 sm:p-5 flex flex-col gap-4">
+          {/* Segmented Control for Input Source */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-500">
                 Source Document
               </label>
-
-              {/* Document Input Mode Tabs */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-xs">
+              <div className="flex items-center gap-1 bg-zinc-100 p-0.5 rounded border border-zinc-200 text-xs">
                 <button
                   type="button"
                   onClick={() => setDocTab('sample')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-medium transition-all ${
+                  className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
                     docTab === 'sample'
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-white font-medium text-zinc-950 border border-zinc-200'
+                      : 'text-zinc-500 hover:text-zinc-900'
                   }`}
                 >
-                  <Database className="h-3 w-3" />
-                  Sample
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDocTab('upload')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-medium transition-all ${
-                    docTab === 'upload'
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <Upload className="h-3 w-3" />
-                  PDF/TXT
+                  FieldBench Sample
                 </button>
                 <button
                   type="button"
                   onClick={() => setDocTab('paste')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-medium transition-all ${
+                  className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
                     docTab === 'paste'
-                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-white font-medium text-zinc-950 border border-zinc-200'
+                      : 'text-zinc-500 hover:text-zinc-900'
                   }`}
                 >
-                  <FileText className="h-3 w-3" />
-                  Paste
+                  Raw Text
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocTab('upload')}
+                  className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+                    docTab === 'upload'
+                      ? 'bg-white font-medium text-zinc-950 border border-zinc-200'
+                      : 'text-zinc-500 hover:text-zinc-900'
+                  }`}
+                >
+                  PDF / File
                 </button>
               </div>
             </div>
-
-            {/* Document Content by Tab */}
-            {docTab === 'upload' && (
-              <FileUploader onTextExtracted={handleTextExtracted} />
-            )}
 
             {docTab === 'sample' && (
               <SampleLoader
@@ -195,41 +155,40 @@ export default function PlaygroundPage() {
               />
             )}
 
-            {/* Always visible text preview / edit */}
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between text-[11px] text-slate-700 dark:text-slate-300">
-                <span>
-                  {uploadedFileName ? `Loaded: ${uploadedFileName}` : selectedSample ? `Sample: ${selectedSample.title}` : 'Document Text'}
-                </span>
-                <span>{documentText.length.toLocaleString()} characters</span>
-              </div>
+            {docTab === 'upload' && (
+              <FileUploader onTextExtracted={handleTextExtracted} />
+            )}
+
+            {/* Document Textarea */}
+            <div className="relative">
               <textarea
                 value={documentText}
                 onChange={(e) => {
                   setDocumentText(e.target.value);
                   setSelectedSample(null);
                 }}
-                rows={docTab === 'upload' ? 5 : 8}
-                placeholder="Paste or drop document text here..."
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 selection:bg-emerald-500/20"
+                rows={docTab === 'upload' ? 4 : 7}
+                placeholder="Paste or input source document text..."
+                className="w-full bg-zinc-100 border border-zinc-200 rounded-md p-2.5 text-xs font-mono text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 leading-relaxed resize-y select-text"
               />
+              <div className="absolute right-2 bottom-2 text-[10px] font-mono text-zinc-400 tabular-nums pointer-events-none">
+                {documentText.length.toLocaleString()} chars · ~{Math.round(documentText.length / 4)} tokens
+              </div>
             </div>
           </div>
 
           {/* Format Selector */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 shadow-sm">
-            <FormatSelector value={outputFormat} onChange={setOutputFormat} />
-          </div>
+          <FormatSelector value={outputFormat} onChange={setOutputFormat} />
 
-          {/* JSON Schema Builder */}
+          {/* Collapsible Schema Builder */}
           <SchemaBuilder
             schema={schema}
             onSchemaChange={setSchema}
             onPresetSelect={handlePresetSelect}
           />
 
-          {/* Model Selection & Run Controls */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 shadow-sm flex flex-col gap-4">
+          {/* Model Selector & Action Button */}
+          <div className="mt-auto pt-4 border-t border-zinc-200 flex flex-col gap-3">
             <ModelSelector selected={selectedModel} onChange={setSelectedModel} />
 
             <Button
@@ -239,71 +198,53 @@ export default function PlaygroundPage() {
               isLoading={loading}
               onClick={handleRun}
               disabled={!documentText.trim()}
-              className="w-full text-sm font-semibold shadow-md shadow-emerald-500/20"
+              className="w-full font-mono text-xs tracking-tight py-2.5"
             >
-              <Play className="h-4 w-4 fill-current" />
-              <span>{loading ? 'Running Inference...' : 'Run Extraction'}</span>
+              {loading ? 'Executing Inference...' : 'Run Extraction'}
             </Button>
           </div>
         </div>
 
-        {/* Right Column (7 cols on lg) — Outputs & Audit */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-emerald-500" />
-                Live Model Outputs & Real-Time Audit
-              </h2>
-              {selectedSample && (
-                <span className="text-[11px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-medium">
-                  Gold Available
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-slate-700 dark:text-slate-300">
-              Evaluated with <code className="text-emerald-500">ajv</code> & Grounding Engine
+        {/* Right Pane (58% width) */}
+        <div className="lg:col-span-7 bg-[#FAFAFA] p-4 sm:p-5 flex flex-col gap-3">
+          <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-1 border-b border-zinc-200">
+            <span className="font-semibold text-zinc-800 uppercase tracking-wider text-[11px]">
+              Evaluation Output Streams
+            </span>
+            <span>
+              {selectedSample ? `Sample: ${selectedSample.id} (${selectedSample.domain})` : 'Custom Payload'}
             </span>
           </div>
 
-          {/* Render cards based on selected mode */}
           {selectedModel === 'all' ? (
-            <div className="flex flex-col gap-5">
-              {/* Compare 3 Cards stacked vertically or side-by-side depending on viewport */}
-              <div className="grid grid-cols-1 gap-5">
-                {/* DPO Aligned Model (Top/Primary) */}
-                <OutputCard
-                  modelKey="dpo"
-                  prediction={predictions.dpo}
-                  schema={schema}
-                  sourceDocument={documentText}
-                  gold={selectedSample?.gold}
-                  isLoading={loading}
-                />
-
-                {/* SFT v2 Model */}
-                <OutputCard
-                  modelKey="sftv2"
-                  prediction={predictions.sftv2}
-                  schema={schema}
-                  sourceDocument={documentText}
-                  gold={selectedSample?.gold}
-                  isLoading={loading}
-                />
-
-                {/* Base Model */}
-                <OutputCard
-                  modelKey="base"
-                  prediction={predictions.base}
-                  schema={schema}
-                  sourceDocument={documentText}
-                  gold={selectedSample?.gold}
-                  isLoading={loading}
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 items-stretch">
+              <OutputCard
+                modelKey="dpo"
+                prediction={predictions.dpo}
+                schema={schema}
+                sourceDocument={documentText}
+                gold={selectedSample?.gold}
+                isLoading={loading}
+              />
+              <OutputCard
+                modelKey="sftv2"
+                prediction={predictions.sftv2}
+                schema={schema}
+                sourceDocument={documentText}
+                gold={selectedSample?.gold}
+                isLoading={loading}
+              />
+              <OutputCard
+                modelKey="base"
+                prediction={predictions.base}
+                schema={schema}
+                sourceDocument={documentText}
+                gold={selectedSample?.gold}
+                isLoading={loading}
+              />
             </div>
           ) : (
-            <div>
+            <div className="flex-1">
               <OutputCard
                 modelKey={selectedModel}
                 prediction={predictions[selectedModel]}

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { SchemaBuilderSimple } from './SchemaBuilderSimple';
 import { SchemaBuilderRaw } from './SchemaBuilderRaw';
-import { Code2, SlidersHorizontal } from 'lucide-react';
 
 interface SchemaBuilderProps {
   schema: Record<string, any>;
@@ -12,41 +11,38 @@ interface SchemaBuilderProps {
 }
 
 export function SchemaBuilder({ schema, onSchemaChange, onPresetSelect }: SchemaBuilderProps) {
-  const [mode, setMode] = useState<'simple' | 'raw'>('raw');
+  const [mode, setMode] = useState<'raw' | 'simple'>('raw');
 
   return (
-    <div className="flex flex-col gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-white dark:bg-slate-900/60 shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
-        <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <Code2 className="h-4 w-4 text-emerald-500" />
+    <div className="flex flex-col gap-2.5 border-t border-zinc-200 pt-3">
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] uppercase tracking-wider font-semibold text-zinc-500">
           Target JSON Schema
         </label>
 
-        {/* Toggle between Simple Builder & Raw Editor */}
-        <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-          <button
-            type="button"
-            onClick={() => setMode('simple')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
-              mode === 'simple'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <SlidersHorizontal className="h-3 w-3" />
-            Simple Builder
-          </button>
+        {/* Mode Toggle */}
+        <div className="flex items-center gap-1 bg-zinc-100 p-0.5 rounded border border-zinc-200 text-xs">
           <button
             type="button"
             onClick={() => setMode('raw')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
+            className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
               mode === 'raw'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white font-medium text-zinc-950 border border-zinc-200'
+                : 'text-zinc-500 hover:text-zinc-900'
             }`}
           >
-            <Code2 className="h-3 w-3" />
-            Raw Schema Editor
+            JSON Schema
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('simple')}
+            className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+              mode === 'simple'
+                ? 'bg-white font-medium text-zinc-950 border border-zinc-200'
+                : 'text-zinc-500 hover:text-zinc-900'
+            }`}
+          >
+            Simple Fields
           </button>
         </div>
       </div>

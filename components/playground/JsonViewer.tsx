@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Check, FileCode2, Terminal } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 
 interface JsonViewerProps {
   data: Record<string, any> | null;
@@ -18,37 +18,36 @@ export function JsonViewer({ data, rawText }: JsonViewerProps) {
     try {
       await navigator.clipboard.writeText(displayString);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error('Failed to copy', err);
     }
   };
 
   return (
-    <div className="relative rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-950 text-slate-100 overflow-hidden flex flex-col">
-      {/* Viewer Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-900 border-b border-slate-800 text-xs">
-        <div className="flex items-center gap-2">
+    <div className="relative rounded-md border border-zinc-200 bg-zinc-100 flex flex-col overflow-hidden text-zinc-900">
+      {/* Top micro toolbar */}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-200/50 border-b border-zinc-200 text-[11px] font-mono">
+        <div className="flex items-center gap-2 text-zinc-500">
           <button
             type="button"
             onClick={() => setViewRaw(false)}
-            className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-              !viewRaw ? 'bg-slate-800 text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+            className={`transition-colors ${
+              !viewRaw ? 'font-semibold text-zinc-950' : 'hover:text-zinc-950'
             }`}
           >
-            <FileCode2 className="h-3 w-3" />
-            Formatted JSON
+            JSON
           </button>
+          <span>·</span>
           {rawText && (
             <button
               type="button"
               onClick={() => setViewRaw(true)}
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                viewRaw ? 'bg-slate-800 text-cyan-400' : 'text-slate-400 hover:text-slate-200'
+              className={`transition-colors ${
+                viewRaw ? 'font-semibold text-zinc-950' : 'hover:text-zinc-950'
               }`}
             >
-              <Terminal className="h-3 w-3" />
-              Raw Token Stream
+              Raw Stream
             </button>
           )}
         </div>
@@ -56,32 +55,32 @@ export function JsonViewer({ data, rawText }: JsonViewerProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800/80 hover:bg-slate-800 border border-slate-700 transition-colors"
-          title="Copy to clipboard"
+          className="flex items-center gap-1 text-zinc-500 hover:text-zinc-950 transition-colors"
+          title="Copy JSON"
         >
           {copied ? (
             <>
-              <Check className="h-3 w-3 text-emerald-400" />
-              <span className="text-emerald-400">Copied!</span>
+              <Check className="h-3 w-3 text-green-600" />
+              <span className="text-green-700">Copied</span>
             </>
           ) : (
             <>
               <Copy className="h-3 w-3" />
-              <span>Copy JSON</span>
+              <span>Copy</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Code Body */}
-      <pre className="p-3.5 text-xs font-mono overflow-auto max-h-[380px] leading-relaxed selection:bg-emerald-500/30">
+      {/* Code Area */}
+      <pre className="p-3 text-[12px] font-mono leading-relaxed overflow-auto max-h-[360px] whitespace-pre-wrap select-text">
         <code>
           {viewRaw ? (
-            <span className="text-slate-300">{rawText || ''}</span>
+            <span className="text-zinc-700">{rawText || ''}</span>
           ) : data ? (
             highlightJson(data)
           ) : (
-            <span className="text-slate-500 italic">No structured JSON returned</span>
+            <span className="text-zinc-400 italic">No structured JSON returned</span>
           )}
         </code>
       </pre>
@@ -89,41 +88,36 @@ export function JsonViewer({ data, rawText }: JsonViewerProps) {
   );
 }
 
-// Simple syntax high-lighting helper
 function highlightJson(obj: any): React.ReactNode {
   const json = JSON.stringify(obj, null, 2);
-
-  // Tokenize JSON for coloring
   const lines = json.split('\n');
 
   return lines.map((line, lineIdx) => {
-    // Check key and value
     const match = line.match(/^(\s*)(".*?")(: )?(.*)$/);
     if (!match) {
       return <div key={lineIdx}>{line}</div>;
     }
 
     const [, indent, key, colon, value] = match;
-
-    let valElement: React.ReactNode = <span className="text-slate-300">{value}</span>;
+    let valElement: React.ReactNode = <span className="text-zinc-800">{value}</span>;
 
     if (value) {
       if (value.startsWith('"')) {
-        valElement = <span className="text-emerald-300">{value}</span>;
+        valElement = <span className="text-blue-700">{value}</span>;
       } else if (value === 'true' || value === 'false') {
-        valElement = <span className="text-purple-400">{value}</span>;
+        valElement = <span className="text-violet-700 font-medium">{value}</span>;
       } else if (value === 'null') {
-        valElement = <span className="text-rose-400 font-semibold">{value}</span>;
+        valElement = <span className="text-red-600 font-semibold">{value}</span>;
       } else if (!isNaN(Number(value.replace(/,$/, '')))) {
-        valElement = <span className="text-amber-300">{value}</span>;
+        valElement = <span className="text-emerald-700 font-medium">{value}</span>;
       }
     }
 
     return (
       <div key={lineIdx}>
         <span>{indent}</span>
-        <span className="text-cyan-400">{key}</span>
-        {colon && <span className="text-slate-500">{colon}</span>}
+        <span className="text-zinc-950 font-medium">{key}</span>
+        {colon && <span className="text-zinc-400">{colon}</span>}
         {valElement}
       </div>
     );

@@ -2,13 +2,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { ModelKey, ModelPrediction } from '@/types/benchmark';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { ValidationBadges } from './ValidationBadges';
 import { JsonViewer } from './JsonViewer';
 import { GoldDiff } from './GoldDiff';
 import { tryParseJSON, validateSchema, checkGrounding, nullAccuracy, fieldF1, docExactMatch } from '@/lib/scoring';
-import { Sparkles, Layers, ShieldCheck, GitCompare, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface OutputCardProps {
   modelKey: ModelKey;
@@ -29,36 +27,24 @@ export function OutputCard({
 }: OutputCardProps) {
   const [showGoldDiff, setShowGoldDiff] = useState(false);
 
-  const modelInfo = {
+  const modelMeta = {
     base: {
       name: 'Base Model',
-      tag: 'CohereLabs/tiny-aya-global',
-      description: 'Vanilla 3.35B Foundation Model',
-      badgeVariant: 'slate' as const,
-      icon: Sparkles,
-      colorBorder: 'border-slate-300 dark:border-slate-700',
+      slug: 'CohereLabs/tiny-aya-global',
+      colorBar: 'bg-[#71717A]',
     },
     sftv2: {
-      name: 'SFT v2 Adapter',
-      tag: 'monson2002/tiny-aya-sft-v2-adapter',
-      description: 'LoRA Supervised Fine-Tuned',
-      badgeVariant: 'cyan' as const,
-      icon: Layers,
-      colorBorder: 'border-blue-500/30',
+      name: 'SFT v2',
+      slug: 'monson2002/tiny-aya-sft-v2-adapter',
+      colorBar: 'bg-[#2563EB]',
     },
     dpo: {
-      name: 'DPO Aligned Adapter',
-      tag: 'monson2002/tiny-aya-sft-v2-dpo-adapter',
-      description: 'Direct Preference Optimization Aligned',
-      badgeVariant: 'emerald' as const,
-      icon: ShieldCheck,
-      colorBorder: 'border-emerald-500/40 ring-1 ring-emerald-500/20',
+      name: 'DPO Aligned',
+      slug: 'monson2002/tiny-aya-sft-v2-dpo-adapter',
+      colorBar: 'bg-[#059669]',
     },
   }[modelKey];
 
-  const Icon = modelInfo.icon;
-
-  // Real-time audit computed via lib/scoring
   const audit = useMemo(() => {
     if (!prediction) return null;
 
@@ -84,7 +70,6 @@ export function OutputCard({
       schemaValid: schemaRes.valid,
       schemaErrors: schemaRes.errors,
       hallucinatedFields: groundingRes.hallucinated_fields,
-      hallucinationRate: groundingRes.hallucination_rate,
       nullAcc: nullAccVal,
       fieldF1: fieldF1Val,
       isDocExact,
@@ -95,80 +80,71 @@ export function OutputCard({
   }, [prediction, schema, sourceDocument, gold]);
 
   return (
-    <Card className={`flex flex-col overflow-hidden border ${modelInfo.colorBorder} transition-all`}>
-      {/* Model Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-md bg-slate-200 dark:bg-slate-800">
-            <Icon className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-slate-900 dark:text-white">
-                {modelInfo.name}
-              </span>
-              <Badge variant={modelInfo.badgeVariant} size="sm">
-                {modelKey.toUpperCase()}
-              </Badge>
-            </div>
-            <p className="text-[11px] text-slate-700 dark:text-slate-300 font-mono">
-              {modelInfo.tag}
-            </p>
-          </div>
+    <div className="flex flex-col h-full bg-white border border-zinc-200 rounded-lg overflow-hidden">
+      {/* 2px top color bar denoting model */}
+      <div className={`h-1 w-full ${modelMeta.colorBar}`} />
+
+      {/* Header */}
+      <div className="p-3 border-b border-zinc-200 flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-xs tracking-tight text-zinc-950">
+            {modelMeta.name}
+          </span>
+          {gold && prediction && (
+            <button
+              type="button"
+              onClick={() => setShowGoldDiff(!showGoldDiff)}
+              className={`text-[11px] font-mono px-2 py-0.5 rounded border transition-colors ${
+                showGoldDiff
+                  ? 'bg-zinc-950 text-white border-zinc-950'
+                  : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
+              }`}
+            >
+              Diff vs Gold
+            </button>
+          )}
+        </div>
+        <div className="font-mono text-[11px] text-zinc-400 truncate" title={modelMeta.slug}>
+          {modelMeta.slug}
         </div>
 
-        {gold && prediction && (
-          <button
-            type="button"
-            onClick={() => setShowGoldDiff(!showGoldDiff)}
-            className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md border font-medium transition-all ${
-              showGoldDiff
-                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <GitCompare className="h-3.5 w-3.5" />
-            <span>Compare vs. Gold</span>
-          </button>
-        )}
+        {/* Inline Metric Strip */}
+        <div className="pt-1 border-t border-zinc-100">
+          {audit ? (
+            <ValidationBadges
+              parseOk={audit.parseOk}
+              schemaValid={audit.schemaValid}
+              schemaErrors={audit.schemaErrors}
+              hallucinatedFields={audit.hallucinatedFields}
+              latencyMs={audit.latencyMs}
+              nullAcc={audit.nullAcc}
+              fieldF1={audit.fieldF1}
+            />
+          ) : (
+            <span className="font-mono text-[11px] text-zinc-400">
+              {isLoading ? 'Running inference...' : 'Awaiting inference trigger'}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Validation Badges */}
-      <div className="p-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800/80">
-        {audit ? (
-          <ValidationBadges
-            parseOk={audit.parseOk}
-            schemaValid={audit.schemaValid}
-            schemaErrors={audit.schemaErrors}
-            hallucinatedFields={audit.hallucinatedFields}
-            latencyMs={audit.latencyMs}
-            nullAcc={audit.nullAcc}
-            fieldF1={audit.fieldF1}
-          />
-        ) : (
-          <div className="text-xs text-slate-700 dark:text-slate-300 italic flex items-center gap-2">
-            {isLoading ? 'Running generation on Nvidia T4 backend...' : 'Awaiting inference trigger...'}
-          </div>
-        )}
-      </div>
-
-      {/* Output Content */}
-      <div className="p-3 flex-1 flex flex-col justify-between">
+      {/* Body */}
+      <div className="p-3 flex-1 flex flex-col justify-start">
         {isLoading ? (
-          <div className="py-16 flex flex-col items-center justify-center gap-3 text-slate-700 dark:text-slate-300">
-            <div className="h-8 w-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
-            <p className="text-xs font-medium">Extracting schema-conditioned JSON...</p>
+          <div className="py-20 flex flex-col items-center justify-center gap-2 text-zinc-400">
+            <Loader2 className="h-5 w-5 animate-spin text-zinc-700" />
+            <span className="font-mono text-xs">Generating constrained JSON...</span>
           </div>
         ) : showGoldDiff && gold && audit ? (
           <GoldDiff predicted={audit.parsedData} gold={gold} />
         ) : audit ? (
           <JsonViewer data={audit.parsedData} rawText={audit.rawOutput} />
         ) : (
-          <div className="py-16 text-center text-xs text-slate-700 dark:text-slate-300 italic border border-dashed border-slate-200 dark:border-slate-800 rounded-lg">
-            Click "Run Extraction" to inspect {modelInfo.name} output
+          <div className="py-20 text-center font-mono text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-md">
+            Click "Run Extraction" to evaluate output
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }

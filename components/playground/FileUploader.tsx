@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { UploadCloud, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { extractTextFromPDF } from '@/lib/pdf';
 
 interface FileUploaderProps {
@@ -22,17 +22,17 @@ export function FileUploader({ onTextExtracted }: FileUploaderProps) {
 
     try {
       if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-        setStatusMessage(`Extracting text from PDF via in-browser pdf.js...`);
+        setStatusMessage(`Extracting text in-browser via pdf.js...`);
         const extracted = await extractTextFromPDF(file);
         if (!extracted.trim()) {
           throw new Error('PDF appears to contain no extractable text (it might be a scanned image).');
         }
         onTextExtracted(extracted, file.name);
-        setStatusMessage(`Successfully extracted ${extracted.length.toLocaleString()} characters from ${file.name}`);
+        setStatusMessage(`Extracted ${extracted.length.toLocaleString()} chars from ${file.name}`);
       } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
         const text = await file.text();
         onTextExtracted(text, file.name);
-        setStatusMessage(`Loaded ${file.name} (${text.length.toLocaleString()} characters)`);
+        setStatusMessage(`Loaded ${file.name} (${text.length.toLocaleString()} chars)`);
       } else {
         throw new Error('Unsupported file format. Please upload a PDF or TXT file.');
       }
@@ -69,10 +69,10 @@ export function FileUploader({ onTextExtracted }: FileUploaderProps) {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
+        className={`border border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2 ${
           isDragging
-            ? 'border-emerald-500 bg-emerald-500/5'
-            : 'border-slate-300 dark:border-slate-700/80 hover:border-slate-400 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-900/40'
+            ? 'border-zinc-950 bg-zinc-100'
+            : 'border-zinc-300 hover:border-zinc-400 bg-zinc-50'
         }`}
       >
         <input
@@ -83,34 +83,34 @@ export function FileUploader({ onTextExtracted }: FileUploaderProps) {
           onChange={handleChange}
         />
 
-        <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
+        <div className="h-8 w-8 rounded-full bg-zinc-200/80 flex items-center justify-center text-zinc-600">
           {isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+            <Loader2 className="h-4 w-4 animate-spin text-zinc-800" />
           ) : (
-            <UploadCloud className="h-6 w-6 text-emerald-500" />
+            <UploadCloud className="h-4 w-4 text-zinc-700" />
           )}
         </div>
 
         <div>
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-            {isLoading ? 'Processing document...' : 'Click or drop PDF / TXT file here'}
+          <p className="text-xs font-medium text-zinc-800">
+            {isLoading ? 'Extracting text...' : 'Drop PDF or TXT document here, or browse'}
           </p>
-          <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5">
-            Client-side parsing via <code className="text-emerald-500">pdfjs-dist</code> (zero server upload)
+          <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
+            Client-side parsing via pdfjs-dist · zero server payload
           </p>
         </div>
       </div>
 
       {statusMessage && (
-        <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-2 text-xs font-mono text-zinc-700 bg-zinc-100 border border-zinc-200 px-3 py-1.5 rounded-md">
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
           <span className="truncate">{statusMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="flex items-center gap-2 text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg">
-          <AlertTriangle className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-2 text-xs font-mono text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-md">
+          <AlertTriangle className="h-3.5 w-3.5 text-red-600 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
