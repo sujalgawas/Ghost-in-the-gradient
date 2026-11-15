@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SCHEMA_PRESETS } from '@/lib/presets';
 
 interface SchemaBuilderRawProps {
@@ -12,16 +12,14 @@ interface SchemaBuilderRawProps {
 export function SchemaBuilderRaw({ schema, onSchemaChange, onPresetSelect }: SchemaBuilderRawProps) {
   const [rawText, setRawText] = useState(() => JSON.stringify(schema, null, 2));
   const [parseError, setParseError] = useState<string | null>(null);
+  const lastEmittedJsonRef = useRef<string>(JSON.stringify(schema));
 
   useEffect(() => {
-    try {
-      const currentParsed = JSON.parse(rawText);
-      if (JSON.stringify(currentParsed) !== JSON.stringify(schema)) {
-        setRawText(JSON.stringify(schema, null, 2));
-        setParseError(null);
-      }
-    } catch {
+    const incomingJson = JSON.stringify(schema);
+    if (incomingJson !== lastEmittedJsonRef.current) {
+      lastEmittedJsonRef.current = incomingJson;
       setRawText(JSON.stringify(schema, null, 2));
+      setParseError(null);
     }
   }, [schema]);
 
@@ -33,6 +31,7 @@ export function SchemaBuilderRaw({ schema, onSchemaChange, onPresetSelect }: Sch
       const parsed = JSON.parse(val);
       if (typeof parsed === 'object' && parsed !== null) {
         setParseError(null);
+        lastEmittedJsonRef.current = JSON.stringify(parsed);
         onSchemaChange(parsed);
       } else {
         setParseError('Schema must be a valid JSON object');
@@ -45,8 +44,10 @@ export function SchemaBuilderRaw({ schema, onSchemaChange, onPresetSelect }: Sch
   const handleApplyPreset = (presetId: string) => {
     const preset = SCHEMA_PRESETS.find(p => p.id === presetId);
     if (preset) {
-      setRawText(JSON.stringify(preset.schema, null, 2));
+      const presetJson = JSON.stringify(preset.schema, null, 2);
+      setRawText(presetJson);
       setParseError(null);
+      lastEmittedJsonRef.current = JSON.stringify(preset.schema);
       onSchemaChange(preset.schema);
       if (onPresetSelect) {
         onPresetSelect(preset.id, preset.sampleDocument);

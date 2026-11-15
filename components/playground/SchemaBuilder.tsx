@@ -47,11 +47,12 @@ export function SchemaBuilder({ schema, onSchemaChange, onPresetSelect }: Schema
         </div>
       </div>
 
-      {mode === 'simple' ? (
+      <div className={mode === 'simple' ? 'block' : 'hidden'}>
         <SchemaBuilderSimple onSchemaChange={onSchemaChange} initialSchema={schema} />
-      ) : (
+      </div>
+      <div className={mode === 'raw' ? 'block' : 'hidden'}>
         <SchemaBuilderRaw schema={schema} onSchemaChange={onSchemaChange} onPresetSelect={onPresetSelect} />
-      )}
+      </div>
     </div>
   );
 }

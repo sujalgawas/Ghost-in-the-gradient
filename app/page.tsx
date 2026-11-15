@@ -28,6 +28,15 @@ export default function PlaygroundPage() {
 
   const { run, predictions, setPredictions, loading, error, wakingUp, countdown } = useInference();
 
+  const handleSchemaChange = React.useCallback((newSchema: Record<string, any>) => {
+    setSchema((prev) => {
+      if (JSON.stringify(prev) === JSON.stringify(newSchema)) {
+        return prev;
+      }
+      return newSchema;
+    });
+  }, []);
+
   const handleTextExtracted = (text: string, filename: string) => {
     setDocumentText(text);
     setUploadedFileName(filename);
@@ -183,7 +192,7 @@ export default function PlaygroundPage() {
           {/* Collapsible Schema Builder */}
           <SchemaBuilder
             schema={schema}
-            onSchemaChange={setSchema}
+            onSchemaChange={handleSchemaChange}
             onPresetSelect={handlePresetSelect}
           />
 

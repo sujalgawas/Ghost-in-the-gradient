@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
@@ -17,72 +17,84 @@ interface SchemaBuilderSimpleProps {
   initialSchema?: Record<string, any>;
 }
 
+function schemaToFields(schema?: Record<string, any>): SimpleField[] {
+  if (!schema || typeof schema !== 'object' || !schema.properties) {
+    return [{ id: '1', name: 'field_1', type: 'string', nullable: false, required: true }];
+  }
+  const props = schema.properties;
+  const requiredList: string[] = Array.isArray(schema.required) ? schema.required : [];
+  const keys = Object.keys(props);
+  if (keys.length === 0) {
+    return [{ id: '1', name: 'field_1', type: 'string', nullable: false, required: true }];
+  }
+
+  return keys.map((key, idx) => {
+    const prop = props[key] || {};
+    let fieldType: SimpleField['type'] = 'string';
+    let isNullable = false;
+
+    if (Array.isArray(prop.type)) {
+      if (prop.type.includes('null')) isNullable = true;
+      const nonNullType = prop.type.find((t: string) => t !== 'null');
+      if (nonNullType) fieldType = nonNullType as any;
+    } else if (typeof prop.type === 'string') {
+      fieldType = (prop.type as SimpleField['type']) || 'string';
+    }
+
+    return {
+      id: `${idx + 1}-${key}`,
+      name: key,
+      type: fieldType,
+      nullable: isNullable,
+      required: requiredList.includes(key),
+    };
+  });
+}
+
+function fieldsToSchema(fields: SimpleField[]): Record<string, any> {
+  const properties: Record<string, any> = {};
+  const required: string[] = [];
+
+  fields.forEach((f) => {
+    const cleanName = f.name.trim();
+    if (!cleanName) return;
+
+    const typeDef = f.nullable ? [f.type, 'null'] : f.type;
+    properties[cleanName] = {
+      type: typeDef,
+    };
+
+    if (f.required) {
+      required.push(cleanName);
+    }
+  });
+
+  return {
+    type: 'object',
+    properties,
+    required: required.length > 0 ? required : undefined,
+  };
+}
+
 export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBuilderSimpleProps) {
-  const [fields, setFields] = useState<SimpleField[]>([
-    { id: '1', name: 'document_id', type: 'string', nullable: false, required: true },
-    { id: '2', name: 'entity_name', type: 'string', nullable: false, required: true },
-    { id: '3', name: 'amount_total', type: 'number', nullable: true, required: false },
-    { id: '4', name: 'is_approved', type: 'boolean', nullable: false, required: false },
-  ]);
+  const [fields, setFields] = useState<SimpleField[]>(() => schemaToFields(initialSchema));
+  const lastEmittedJsonRef = useRef<string>(JSON.stringify(initialSchema || {}));
 
+  // Synchronize when external schema changes (e.g. from preset, sample, or raw editor)
   useEffect(() => {
-    if (initialSchema && initialSchema.properties) {
-      const props = initialSchema.properties;
-      const requiredList: string[] = Array.isArray(initialSchema.required) ? initialSchema.required : [];
-      const newFields: SimpleField[] = Object.keys(props).map((key, idx) => {
-        const prop = props[key] || {};
-        let fieldType: SimpleField['type'] = 'string';
-        let isNullable = false;
-
-        if (Array.isArray(prop.type)) {
-          if (prop.type.includes('null')) isNullable = true;
-          const nonNullType = prop.type.find((t: string) => t !== 'null');
-          if (nonNullType) fieldType = nonNullType as any;
-        } else if (typeof prop.type === 'string') {
-          fieldType = (prop.type as SimpleField['type']) || 'string';
-        }
-
-        return {
-          id: String(idx + 1),
-          name: key,
-          type: fieldType,
-          nullable: isNullable,
-          required: requiredList.includes(key),
-        };
-      });
-
-      if (newFields.length > 0) {
-        setFields(newFields);
-      }
+    const incomingJson = JSON.stringify(initialSchema || {});
+    if (incomingJson !== lastEmittedJsonRef.current) {
+      lastEmittedJsonRef.current = incomingJson;
+      setFields(schemaToFields(initialSchema));
     }
   }, [initialSchema]);
 
-  useEffect(() => {
-    const properties: Record<string, any> = {};
-    const required: string[] = [];
-
-    fields.forEach((f) => {
-      const cleanName = f.name.trim();
-      if (!cleanName) return;
-
-      const typeDef = f.nullable ? [f.type, 'null'] : f.type;
-      properties[cleanName] = {
-        type: typeDef,
-      };
-
-      if (f.required) {
-        required.push(cleanName);
-      }
-    });
-
-    const compiledSchema = {
-      type: 'object',
-      properties,
-      required: required.length > 0 ? required : undefined,
-    };
-
-    onSchemaChange(compiledSchema);
-  }, [fields, onSchemaChange]);
+  const updateFieldsAndEmit = (newFields: SimpleField[]) => {
+    setFields(newFields);
+    const compiled = fieldsToSchema(newFields);
+    lastEmittedJsonRef.current = JSON.stringify(compiled);
+    onSchemaChange(compiled);
+  };
 
   const addField = () => {
     const newField: SimpleField = {
@@ -92,15 +104,17 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
       nullable: false,
       required: true,
     };
-    setFields([...fields, newField]);
+    updateFieldsAndEmit([...fields, newField]);
   };
 
   const updateField = (id: string, patch: Partial<SimpleField>) => {
-    setFields(fields.map(f => f.id === id ? { ...f, ...patch } : f));
+    const updated = fields.map(f => f.id === id ? { ...f, ...patch } : f);
+    updateFieldsAndEmit(updated);
   };
 
   const removeField = (id: string) => {
-    setFields(fields.filter(f => f.id !== id));
+    const remaining = fields.filter(f => f.id !== id);
+    updateFieldsAndEmit(remaining.length > 0 ? remaining : [{ id: '1', name: 'field_1', type: 'string', nullable: false, required: true }]);
   };
 
   return (
@@ -163,6 +177,7 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
                     type="button"
                     onClick={() => removeField(field.id)}
                     className="text-zinc-400 hover:text-red-600 transition-colors"
+                    title="Remove field"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -185,7 +200,7 @@ export function SchemaBuilderSimple({ onSchemaChange, initialSchema }: SchemaBui
           Add Field
         </Button>
         <span className="text-[11px] font-mono text-zinc-400">
-          JSON Schema v7
+          {fields.length} active fields
         </span>
       </div>
     </div>
