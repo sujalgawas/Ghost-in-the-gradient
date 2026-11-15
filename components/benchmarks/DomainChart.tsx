@@ -56,11 +56,10 @@ export function DomainChart({ byDomain }: DomainChartProps) {
               key={pill.id}
               type="button"
               onClick={() => setSelectedMetric(pill.id)}
-              className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors border ${
-                selectedMetric === pill.id
+              className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors border ${selectedMetric === pill.id
                   ? 'bg-zinc-950 text-white border-zinc-950 font-medium'
                   : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
-              }`}
+                }`}
             >
               {pill.label}
             </button>
