@@ -27,14 +27,6 @@ export function FormatSelector({ value, onChange }: FormatSelectorProps) {
         >
           JSON (Strict Schema)
         </button>
-
-        <span className="px-2 py-1 rounded text-xs font-mono text-zinc-400 border border-zinc-200 bg-zinc-50 cursor-not-allowed">
-          YAML <span className="text-[10px] text-zinc-400">soon</span>
-        </span>
-
-        <span className="px-2 py-1 rounded text-xs font-mono text-zinc-400 border border-zinc-200 bg-zinc-50 cursor-not-allowed">
-          XML <span className="text-[10px] text-zinc-400">soon</span>
-        </span>
       </div>
     </div>
   );
